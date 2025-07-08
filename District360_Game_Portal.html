@@ -1,0 +1,2249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>District360 Portal (Game Simulation)</title>
+    <style>
+        /* General Body and Container Styling */
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top for longer content */
+            min-height: 100vh;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .portal-container {
+            background-color: #ffffff;
+            border-radius: 12px; /* Rounded corners */
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            width: 100%;
+            max-width: 900px; /* Increased max-width for more content */
+            margin: 20px;
+            padding: 30px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            min-height: calc(100vh - 40px); /* Ensure it takes up most of the screen height */
+        }
+
+        /* Header Styling */
+        h1, h2, h3 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        h1 { font-size: 2.5em; margin-bottom: 10px; }
+        h2 { font-size: 1.8em; margin-bottom: 15px; }
+        h3 { font-size: 1.4em; margin-top: 25px; border-bottom: 2px solid #eee; padding-bottom: 8px; }
+
+        /* Login Form Styling */
+        .login-form {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fdfdfd;
+            border-radius: 8px;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.05);
+        }
+        .login-form label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        .login-form input[type="text"],
+        .login-form input[type="password"],
+        .login-form select,
+        .login-form textarea {
+            width: calc(100% - 22px); /* Account for padding and border */
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 6px; /* Rounded corners */
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .login-form button, .action-button {
+            width: 100%;
+            padding: 12px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px; /* Rounded corners */
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-top: 10px;
+        }
+        .login-form button:hover, .action-button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+        .login-form button:active, .action-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .error-message, .notification-message {
+            color: #e74c3c;
+            text-align: center;
+            margin-top: 15px;
+            font-weight: bold;
+            padding: 8px;
+            border-radius: 4px;
+            background-color: #fdeded;
+            border: 1px solid #e74c3c;
+            display: none; /* Hidden by default */
+        }
+        .notification-message.success {
+            color: #27ae60;
+            background-color: #ebf9f1;
+            border-color: #27ae60;
+        }
+
+        /* Dashboard Layout */
+        .dashboard-container {
+            display: flex;
+            flex-grow: 1; /* Allows main content to grow */
+        }
+        .sidebar {
+            width: 200px;
+            padding-right: 20px;
+            border-right: 1px solid #eee;
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .sidebar-menu li {
+            margin-bottom: 10px;
+        }
+        .sidebar-menu a {
+            display: block;
+            padding: 10px 15px;
+            background-color: #ecf0f1;
+            color: #34495e;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: background-color 0.2s ease, color 0.2s ease;
+            font-weight: bold;
+        }
+        .sidebar-menu a:hover {
+            background-color: #dce4e6;
+            color: #2c3e50;
+        }
+        .sidebar-menu a.active {
+            background-color: #3498db;
+            color: white;
+            box-shadow: 0 2px 5px rgba(52, 152, 219, 0.3);
+        }
+
+        .main-content {
+            flex-grow: 1;
+            padding-left: 30px;
+        }
+
+        /* Dashboard Section Styling */
+        .dashboard-section {
+            display: none; /* Hidden by default, shown by JS */
+            flex-direction: column;
+            flex-grow: 1;
+        }
+        .dashboard-section h3 {
+            text-align: left;
+            margin-bottom: 15px;
+        }
+        .dashboard-section p, .dashboard-section ul {
+            margin-bottom: 10px;
+        }
+        .dashboard-section ul {
+            list-style-type: disc;
+            margin-left: 20px;
+            padding: 0;
+        }
+        .dashboard-section li {
+            margin-bottom: 5px;
+        }
+        .dashboard-section strong {
+            color: #555;
+        }
+        .dashboard-section .info-item {
+            background-color: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
+        }
+        .dashboard-section .info-item:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background-color: #fdfdfd;
+            border-radius: 8px;
+            overflow: hidden; /* For rounded corners on table */
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        th {
+            background-color: #34495e;
+            color: white;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .edit-button, .delete-button, .add-button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.2s ease;
+        }
+        .edit-button { background-color: #2ecc71; color: white; }
+        .edit-button:hover { background-color: #27ae60; }
+        .delete-button { background-color: #e74c3c; color: white; }
+        .delete-button:hover { background-color: #c0392b; }
+        .add-button { background-color: #3498db; color: white; margin-bottom: 15px; }
+        .add-button:hover { background-color: #2980b9; }
+
+
+        /* Modal Styling */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.5); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+        .close-button {
+            color: #aaa;
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .modal-buttons button {
+            width: auto;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        .modal-buttons .cancel-button {
+            background-color: #95a5a6;
+        }
+        .modal-buttons .cancel-button:hover {
+            background-color: #7f8c8d;
+        }
+
+        /* Top Bar & Logout */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .top-bar h2 {
+            margin: 0;
+            text-align: left;
+            flex-grow: 1;
+        }
+        .top-bar .user-info {
+            font-weight: bold;
+            color: #34495e;
+            margin-right: 15px;
+        }
+        .logout-button {
+            padding: 8px 15px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-size: 1em;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            width: auto; /* Override 100% width from general button style */
+            margin-top: 0; /* Override margin-top */
+        }
+        .logout-button:hover {
+            background-color: #c0392b;
+            transform: translateY(-1px);
+        }
+        .logout-button:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* Checkbox list for modals */
+        .checkbox-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 15px;
+            background-color: #f9f9f9;
+        }
+        .checkbox-list label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            cursor: pointer;
+            font-weight: normal;
+        }
+        .checkbox-list input[type="checkbox"] {
+            margin-right: 10px;
+            width: auto;
+            margin-bottom: 0;
+        }
+        .checkbox-list label:hover {
+            background-color: #eef;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .portal-container {
+                margin: 10px;
+                padding: 15px;
+                min-height: calc(100vh - 20px);
+            }
+            .login-form {
+                padding: 15px;
+            }
+            .login-form input[type="text"],
+            .login-form input[type="password"],
+            .login-form button {
+                font-size: 14px;
+                padding: 10px;
+            }
+            h1 { font-size: 2em; }
+            h2 { font-size: 1.5em; }
+            h3 { font-size: 1.1em; }
+
+            .dashboard-container {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                padding-right: 0;
+                border-right: none;
+                border-bottom: 1px solid #eee;
+                margin-bottom: 15px;
+            }
+            .sidebar-menu {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 8px;
+            }
+            .sidebar-menu li {
+                margin-bottom: 0;
+            }
+            .sidebar-menu a {
+                padding: 8px 12px;
+                font-size: 0.9em;
+            }
+            .main-content {
+                padding-left: 0;
+            }
+            .top-bar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .top-bar .user-info {
+                margin-right: 0;
+            }
+            .logout-button {
+                width: 100%;
+                margin-top: 10px;
+            }
+            .modal-content {
+                width: 95%;
+                padding: 20px;
+            }
+            th, td {
+                padding: 8px 10px;
+                font-size: 0.9em;
+            }
+            .edit-button, .delete-button, .add-button {
+                padding: 5px 8px;
+                font-size: 0.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="portal-container">
+        <!-- Login Panel -->
+        <div id="loginPanel" class="active">
+            <h1>District360 Portal</h1>
+            <h2>Login</h2>
+            <form id="loginForm" class="login-form">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+
+                <label for="password">Password (Discord ID):</label>
+                <input type="password" id="password" name="password" required>
+
+                <button type="submit">Login</button>
+                <p id="errorMessage" class="error-message"></p>
+            </form>
+        </div>
+
+        <!-- Main Dashboard Wrapper (visible after login) -->
+        <div id="dashboardWrapper" class="dashboard-section">
+            <div class="top-bar">
+                <h2>District360</h2>
+                <span class="user-info">Logged in as: <span id="currentUserNameDisplay"></span> (<span id="currentUserRoleDisplay"></span>)</span>
+                <button class="logout-button" onclick="logout()">Logout</button>
+            </div>
+
+            <div class="dashboard-container">
+                <!-- Sidebar Menu -->
+                <div class="sidebar">
+                    <ul class="sidebar-menu" id="sidebarMenu">
+                        <li><a href="#" data-panel="studentHome">Dashboard Home</a></li>
+                        <!-- Dynamic menu items will be added here based on role -->
+                    </ul>
+                </div>
+
+                <!-- Main Content Area -->
+                <div class="main-content">
+                    <!-- Student Dashboard Panels -->
+                    <div id="studentHome" class="dashboard-content-panel">
+                        <h2>Student Dashboard</h2>
+                        <p>Welcome, <strong id="studentNameDisplay"></strong>!</p>
+
+                        <h3>Transportation Info</h3>
+                        <div class="info-item">
+                            <p><strong>Bus Route:</strong> <span id="studentBusRoute"></span></p>
+                            <p><strong>Driver:</strong> <span id="studentDriverName"></span></p>
+                            <p><strong>Bus Stop Time:</strong> <span id="studentBusStopTime"></span></p>
+                        </div>
+
+                        <h3>Grades & Academic History</h3>
+                        <div class="info-item">
+                            <p><strong>Current Grades:</strong></p>
+                            <ul id="studentGradesList"></ul>
+                            <p><strong>Previous Schools:</strong> <span id="studentPreviousSchools"></span></p>
+                        </div>
+
+                        <h3>Personal Information</h3>
+                        <div class="info-item">
+                            <p><strong>Student ID:</strong> <span id="studentIdDisplay"></span></p>
+                            <p><strong>Home Address:</strong> <span id="studentAddressDisplay"></span></p>
+                            <p><strong>Current School:</strong> <span id="studentCurrentSchool"></span></p>
+                        </div>
+
+                        <h3>Uniform Policy</h3>
+                        <div class="info-item">
+                            <p><strong>Uniform Codes:</strong> <span id="studentUniformCodes"></span></p>
+                        </div>
+
+                        <h3>Attendance Records</h3>
+                        <div class="info-item">
+                            <p><strong>Total Days Absent:</strong> <span id="studentDaysAbsent"></span></p>
+                            <ul id="studentAttendanceList"></ul>
+                        </div>
+
+                        <h3>Upcoming Events & Calendar</h3>
+                        <div class="info-item">
+                            <ul id="studentEventsList"></ul>
+                        </div>
+
+                        <h3>Fictional Fee Payments</h3>
+                        <div class="info-item">
+                            <p><strong>Outstanding Fees:</strong> $<span id="studentOutstandingFees"></span></p>
+                            <p><em>(Fictional cash system)</em></p>
+                            <button class="action-button" onclick="payFictionalFees()">Pay Fees (Simulated)</button>
+                        </div>
+
+                        <h3>Resources</h3>
+                        <div class="info-item">
+                            <p><strong>Student Handbook:</strong> <a href="#" onclick="showNotification('Simulating download of Student Handbook...', 'success')">Download PDF</a></p>
+                            <p><strong>Technology Help Desk:</strong> Ext. 1234 (Simulated)</p>
+                        </div>
+                    </div>
+
+                    <!-- Staff Dashboard Panels -->
+                    <div id="staffHome" class="dashboard-content-panel">
+                        <h2>Staff Dashboard</h2>
+                        <p>Welcome, <strong id="staffNameDisplay"></strong>!</p>
+                        <p>Use the sidebar to navigate your tools.</p>
+                        <h3>Recent Activity</h3>
+                        <div class="info-item">
+                            <p>No recent activity to display.</p>
+                        </div>
+                    </div>
+
+                    <div id="staffGrading" class="dashboard-content-panel">
+                        <h2>Grading Portal</h2>
+                        <p>Select a class to enter grades.</p>
+                        <label for="classSelector">Select Class:</label>
+                        <select id="classSelector" onchange="loadClassRoster()"></select>
+
+                        <table id="gradingTable">
+                            <thead>
+                                <tr>
+                                    <th>Student Name</th>
+                                    <th>Current Grade</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Roster will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="staffAttendance" class="dashboard-content-panel">
+                        <h2>Attendance Submission</h2>
+                        <p>Select a class and student to submit attendance.</p>
+                        <label for="attendanceClassSelector">Select Class:</label>
+                        <select id="attendanceClassSelector" onchange="loadAttendanceRoster()"></select>
+
+                        <table id="attendanceTable">
+                            <thead>
+                                <tr>
+                                    <th>Student Name</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Attendance roster will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="staffStudentInfo" class="dashboard-content-panel">
+                        <h2>Student Info Viewer</h2>
+                        <p>View student information by campus, grade level, or class.</p>
+                        <!-- Simplified: just a list of all students for now -->
+                        <h3>All Students</h3>
+                        <ul id="allStudentsList">
+                            <!-- All students will be listed here -->
+                        </ul>
+                    </div>
+
+                    <div id="staffPaycheck" class="dashboard-content-panel">
+                        <h2>Paycheck Viewer</h2>
+                        <p>Your fictional earnings display.</p>
+                        <div class="info-item">
+                            <p><strong>Last Paycheck Amount:</strong> $<span id="staffPaycheckAmount"></span></p>
+                            <p><strong>Date Issued:</strong> <span id="staffPaycheckDate"></span></p>
+                        </div>
+                        <h3>Hours Worked Log</h3>
+                        <ul id="staffHoursLog">
+                            <!-- Hours log will be populated here -->
+                        </ul>
+                    </div>
+
+                    <!-- Admin Dashboard Panels -->
+                    <div id="adminHome" class="dashboard-content-panel">
+                        <h2>Admin Dashboard</h2>
+                        <p>Welcome, <strong id="adminNameDisplay"></strong>!</p>
+                        <p>Use the sidebar for district analytics and management tools.</p>
+                        <h3>Quick Stats</h3>
+                        <div class="info-item">
+                            <p><strong>Total Students:</strong> <span id="adminTotalStudents"></span></p>
+                            <p><strong>Total Staff:</strong> <span id="adminTotalStaff"></span></p>
+                            <p><strong>Westfield ISD Enrollment:</strong> <span id="adminWestfieldEnrollment"></span></p>
+                            <p><strong>North Ridge ISD Enrollment:</strong> <span id="adminNorthRidgeEnrollment"></span></p>
+                        </div>
+                    </div>
+
+                    <div id="adminAnalytics" class="dashboard-content-panel">
+                        <h2>District Analytics</h2>
+                        <h3>Attendance Rates</h3>
+                        <div class="info-item"><p>Overall District Attendance: <strong>92.5%</strong> (Simulated)</p></div>
+                        <h3>Truancy Rates</h3>
+                        <div class="info-item"><p>District Truancy Rate: <strong>5.1%</strong> (Simulated)</p></div>
+                        <button class="action-button" onclick="showTargetedTruancyAlertModal()">Send Targeted Truancy Alerts</button>
+                        <h3>Grade Distributions</h3>
+                        <div class="info-item"><p>Overall Grade Distribution: A: 30%, B: 45%, C: 20%, D: 4%, F: 1% (Simulated)</p></div>
+                        <button class="action-button" onclick="showAnnouncementModal()">Send General Announcement</button>
+                    </div>
+
+                    <div id="adminUserManagement" class="dashboard-content-panel">
+                        <h2>Staff & Student Management</h2>
+                        <button class="add-button" onclick="showAddUserModal()">Add New User</button>
+                        <h3>Managed Portal Users (Students & Staff Only)</h3>
+                        <table id="userManagementTable">
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Role</th>
+                                    <th>School</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Users will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="adminCampusReports" class="dashboard-content-panel">
+                        <h2>Campus Reports</h2>
+                        <h3>Westfield ISD</h3>
+                        <div class="info-item">
+                            <p><strong>Enrollment:</strong> 1500 students</p>
+                            <p><strong>Staffing:</strong> 120 teachers, 30 support staff</p>
+                        </div>
+                        <h3>North Ridge ISD</h3>
+                        <div class="info-item">
+                            <p><strong>Enrollment:</strong> 1200 students</p>
+                            <p><strong>Staffing:</strong> 100 teachers, 25 support staff</p>
+                        </div>
+                    </div>
+
+                    <!-- Executive Dashboard Panels -->
+                    <div id="executiveHome" class="dashboard-content-panel">
+                        <h2>Executive Dashboard</h2>
+                        <p>Welcome, <strong id="executiveNameDisplay"></strong>!</p>
+                        <p>Full system control and district-wide oversight.</p>
+                        <h3>System Overview</h3>
+                        <div class="info-item">
+                            <p><strong>Total Districts Managed:</strong> 2</p>
+                            <p><strong>Active Users:</strong> <span id="executiveActiveUsers"></span></p>
+                        </div>
+                    </div>
+
+                    <div id="executiveUserManagement" class="dashboard-content-panel">
+                        <h2>Executive User Management</h2>
+                        <p>Create, edit, or delete any account across both districts.</p>
+                        <button class="add-button" onclick="showAddUserModal()">Add New User</button>
+                        <h3>All Portal Users (Full Control)</h3>
+                        <table id="executiveUserManagementTable">
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Role</th>
+                                    <th>School</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Users will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="executivePolicySettings" class="dashboard-content-panel">
+                        <h2>Policy & Uniform Code Settings</h2>
+                        <h3>District-Wide Uniform Policy</h3>
+                        <label for="uniformPolicyInput">Current Uniform Policy:</label>
+                        <textarea id="uniformPolicyInput" rows="5"></textarea>
+                        <button class="action-button" onclick="saveUniformPolicy()">Save Uniform Policy</button>
+
+                        <h3>Alert System Settings</h3>
+                        <p>Configure district-wide alert messages and triggers.</p>
+                        <div class="info-item"><p><em>(Simulated settings: Currently enabled for truancy alerts)</em></p></div>
+                        <button class="action-button" onclick="showAnnouncementModal()">Send General Announcement</button>
+                    </div>
+
+                    <div id="executiveSystemSettings" class="dashboard-content-panel">
+                        <h2>System Settings</h2>
+                        <h3>Portal Branding</h3>
+                        <label for="portalNameInput">Portal Name:</label>
+                        <input type="text" id="portalNameInput" value="District360 Portal">
+                        <label for="districtLogoInput">District Logo URL:</label>
+                        <input type="text" id="districtLogoInput" value="https://placehold.co/100x50/3498db/ffffff?text=LOGO">
+                        <label for="themeColorInput">Theme Color:</label>
+                        <input type="color" id="themeColorInput" value="#3498db">
+                        <button class="action-button" onclick="applySystemSettings()">Apply Settings</button>
+                    </div>
+
+                    <div id="executiveNewsFeedManagement" class="dashboard-content-panel">
+                        <h2>News Feed Management</h2>
+                        <button class="add-button" onclick="showAddNewsItemModal()">Add New News Item</button>
+                        <h3>Current News Items</h3>
+                        <table id="newsFeedManagementTable">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- News items will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Parent Dashboard Panels -->
+                    <div id="parentHome" class="dashboard-content-panel">
+                        <h2>Parent Dashboard</h2>
+                        <p>Welcome, <strong id="parentNameDisplay"></strong>!</p>
+                        <h3>Your Children</h3>
+                        <ul id="parentChildrenList">
+                            <!-- Children's overview will be populated here -->
+                        </ul>
+                        <h3>Upcoming School Events</h3>
+                        <div class="info-item">
+                            <ul id="parentEventsList"></ul>
+                        </div>
+                        <h3>Outstanding Fees</h3>
+                        <div class="info-item">
+                            <p>Total Outstanding Fees: $<span id="parentTotalOutstandingFees"></span></p>
+                            <button class="action-button" onclick="payFictionalFees()">Pay Fees (Simulated)</button>
+                        </div>
+                        <h3>Contact School</h3>
+                        <div class="info-item">
+                            <p>Contact Teacher: <a href="#" onclick="showNotification('Simulating email to teacher...', 'success')">Email Teacher</a></p>
+                            <p>Contact Front Office: <a href="#" onclick="showNotification('Simulating call to Front Office...', 'success')">Call Front Office</a></p>
+                        </div>
+                    </div>
+
+                    <!-- Optional Enhancements (Simulated) -->
+                    <div id="digitalIdCards" class="dashboard-content-panel">
+                        <h2>Digital ID Cards</h2>
+                        <p>Your digital ID card for the district.</p>
+                        <div class="info-item" style="text-align: center; padding: 20px;">
+                            <img id="idCardPhoto" src="https://placehold.co/150x150/cccccc/333333?text=Photo" alt="ID Photo" style="border-radius: 8px; margin-bottom: 10px;">
+                            <p><strong>Name:</strong> <span id="idCardName"></span></p>
+                            <p><strong>ID:</strong> <span id="idCardID"></span></p>
+                            <p><strong>Role:</strong> <span id="idCardRole"></span></p>
+                            <p><strong>District:</strong> <span id="idCardDistrict"></span></p>
+                        </div>
+                    </div>
+
+                    <div id="districtNewsFeed" class="dashboard-content-panel">
+                        <h2>District News Feed</h2>
+                        <div id="newsFeedContent">
+                            <!-- News items will be populated here -->
+                        </div>
+                    </div>
+
+                    <!-- AI Chatbot (Simulated) -->
+                    <div id="aiChatbot" class="dashboard-content-panel">
+                        <h2>AI Chatbot (Simulated)</h2>
+                        <div class="info-item" style="height: 300px; overflow-y: scroll; display: flex; flex-direction: column; justify-content: flex-end;">
+                            <div id="chatbotMessages">
+                                <p><strong>Chatbot:</strong> Hello! How can I assist you today?</p>
+                            </div>
+                        </div>
+                        <input type="text" id="chatbotInput" placeholder="Type your question..." style="margin-top: 15px;">
+                        <button class="action-button" onclick="sendChatbotMessage()">Send</button>
+                    </div>
+
+                </div> <!-- End main-content -->
+            </div> <!-- End dashboard-container -->
+        </div> <!-- End dashboardWrapper -->
+
+        <!-- Modals -->
+        <!-- Edit Grade Modal -->
+        <div id="editGradeModal" class="modal">
+            <div class="modal-content">
+                <span class="close-button" onclick="closeModal('editGradeModal')">&times;</span>
+                <h3>Edit Grade</h3>
+                <p>Student: <strong id="modalStudentName"></strong></p>
+                <p>Class: <strong id="modalClassName"></strong></p>
+                <label for="newGradeInput">New Grade:</label>
+                <input type="number" id="newGradeInput" min="0" max="100">
+                <div class="modal-buttons">
+                    <button class="action-button cancel-button" onclick="closeModal('editGradeModal')">Cancel</button>
+                    <button class="action-button" onclick="saveGrade()">Save Grade</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Status Modal -->
+        <div id="attendanceModal" class="modal">
+            <div class="modal-content">
+                <span class="close-button" onclick="closeModal('attendanceModal')">&times;</span>
+                <h3>Set Attendance Status</h3>
+                <p>Student: <strong id="attendanceModalStudentName"></strong></p>
+                <label for="attendanceStatusSelect">Status:</label>
+                <select id="attendanceStatusSelect">
+                    <option value="Present">Present</option>
+                    <option value="Absent">Absent</option>
+                    <option value="Tardy">Tardy</option>
+                </select>
+                <div class="modal-buttons">
+                    <button class="action-button cancel-button" onclick="closeModal('attendanceModal')">Cancel</button>
+                    <button class="action-button" onclick="saveAttendance()">Save Attendance</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add/Edit User Modal -->
+        <div id="userModal" class="modal">
+            <div class="modal-content">
+                <span class="close-button" onclick="closeModal('userModal')">&times;</span>
+                <h3 id="userModalTitle">Add New User</h3>
+                <input type="hidden" id="userModalOriginalUsername"> <!-- To store original username for edits -->
+
+                <label for="userModalUsername">Username:</label>
+                <input type="text" id="userModalUsername" required>
+
+                <label for="userModalPassword">Password (Discord ID):</label>
+                <input type="text" id="userModalPassword" required>
+
+                <label for="userModalRole">Role:</label>
+                <select id="userModalRole" onchange="toggleUserSpecificFields()">
+                    <option value="Student">Student</option>
+                    <option value="Staff">Staff</option>
+                    <option value="Admin">Admin</option>
+                    <option value="Executive">Executive</option>
+                    <option value="Parent">Parent</option>
+                </select>
+
+                <label for="userModalName">Full Name:</label>
+                <input type="text" id="userModalName" required>
+
+                <div id="studentSpecificFields" style="display: none;">
+                    <label for="userModalStudentID">Student ID:</label>
+                    <input type="text" id="userModalStudentID">
+                    <label for="userModalCurrentSchool">Current School:</label>
+                    <input type="text" id="userModalCurrentSchool">
+                    <label for="userModalHomeAddress">Home Address:</label>
+                    <input type="text" id="userModalHomeAddress">
+                </div>
+
+                <div id="staffSpecificFields" style="display: none;">
+                    <label for="userModalStaffRole">Staff Role:</label>
+                    <input type="text" id="userModalStaffRole">
+                    <label for="userModalAssignedClasses">Assigned Classes (comma-separated):</label>
+                    <input type="text" id="userModalAssignedClasses">
+                </div>
+
+                <div id="parentSpecificFields" style="display: none;">
+                    <label for="userModalChildrenIDs">Children Usernames (comma-separated):</label>
+                    <input type="text" id="userModalChildrenIDs">
+                </div>
+
+                <div class="modal-buttons">
+                    <button class="action-button cancel-button" onclick="closeModal('userModal')">Cancel</button>
+                    <button class="action-button" onclick="saveUser()">Save User</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Targeted Truancy Alert Modal -->
+        <div id="targetedTruancyAlertModal" class="modal">
+            <div class="modal-content">
+                <span class="close-button" onclick="closeModal('targetedTruancyAlertModal')">&times;</span>
+                <h3>Send Targeted Truancy Alerts</h3>
+                <label for="truancyMessageInput">Alert Message:</label>
+                <textarea id="truancyMessageInput" rows="3" placeholder="e.g., Your attendance is below district standards. Please contact your counselor."></textarea>
+                <p>Select students to send alerts to:</p>
+                <div id="truancyStudentList" class="checkbox-list">
+                    <!-- Students will be populated here -->
+                </div>
+                <div class="modal-buttons">
+                    <button class="action-button cancel-button" onclick="closeModal('targetedTruancyAlertModal')">Cancel</button>
+                    <button class="action-button" onclick="sendTargetedTruancyAlerts()">Send Alerts</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Send Announcement Modal -->
+        <div id="announcementModal" class="modal">
+            <div class="modal-content">
+                <span class="close-button" onclick="closeModal('announcementModal')">&times;</span>
+                <h3>Send District Announcement</h3>
+                <label for="announcementTitleInput">Title:</label>
+                <input type="text" id="announcementTitleInput" placeholder="e.g., Important School Closure">
+                <label for="announcementMessageInput">Message:</label>
+                <textarea id="announcementMessageInput" rows="5" placeholder="e.g., Due to inclement weather, all schools will be closed tomorrow..."></textarea>
+                <label for="announcementTargetRole">Target Audience:</label>
+                <select id="announcementTargetRole">
+                    <option value="All">All Users</option>
+                    <option value="Student">All Students</option>
+                    <option value="Staff">All Staff</option>
+                    <option value="Admin">All Admins</option>
+                    <option value="Executive">All Executives</option>
+                    <option value="Parent">All Parents</option>
+                    <option value="Westfield High">Westfield High (Students/Staff/Parents)</option>
+                    <option value="North Ridge High">North Ridge High (Students/Staff/Parents)</option>
+                </select>
+                <div class="modal-buttons">
+                    <button class="action-button cancel-button" onclick="closeModal('announcementModal')">Cancel</button>
+                    <button class="action-button" onclick="sendAnnouncement()">Send Announcement</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add/Edit News Item Modal -->
+        <div id="newsItemModal" class="modal">
+            <div class="modal-content">
+                <span class="close-button" onclick="closeModal('newsItemModal')">&times;</span>
+                <h3 id="newsItemModalTitle">Add News Item</h3>
+                <input type="hidden" id="newsItemOriginalTitle">
+                <label for="newsItemTitleInput">Title:</label>
+                <input type="text" id="newsItemTitleInput" required>
+                <label for="newsItemDateInput">Date:</label>
+                <input type="date" id="newsItemDateInput" required>
+                <label for="newsItemContentInput">Content:</label>
+                <textarea id="newsItemContentInput" rows="6" required></textarea>
+                <div class="modal-buttons">
+                    <button class="action-button cancel-button" onclick="closeModal('newsItemModal')">Cancel</button>
+                    <button class="action-button" onclick="saveNewsItem()">Save News Item</button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Notification Message Box -->
+        <div id="notificationBox" class="notification-message"></div>
+
+    </div> <!-- End portal-container -->
+
+    <script>
+        // *** IMPORTANT SECURITY WARNING ***
+        // THIS CODE IS FOR A FICTIONAL GAME SIMULATION ONLY.
+        // IT IS NOT SECURE FOR REAL-WORLD APPLICATIONS.
+        // PASSWORDS ARE HARDCODED IN PLAIN TEXT AND THERE IS NO PROPER AUTHENTICATION OR ENCRYPTION.
+        // DO NOT USE THIS CODE FOR ANY SYSTEM HANDLING SENSITIVE REAL DATA.
+
+        // --- Fictional Data Model (In-Memory) ---
+        // This simulates your database for the game.
+        // All data is in-memory and will reset if the page is refreshed.
+        let fictionalUsers = [
+            {
+                username: "exec_dist360",
+                password: "1005721618800181298", // Updated password for your account
+                role: "Executive",
+                data: {
+                    name: "Dr. Evelyn Reed",
+                    permissions: ["all"],
+                    portalBranding: {
+                        name: "District360 Portal",
+                        logoUrl: "https://placehold.co/100x50/3498db/ffffff?text=LOGO",
+                        themeColor: "#3498db"
+                    },
+                    uniformPolicy: "All students must adhere to the district's standardized uniform policy, which includes solid color polo shirts (navy, white, gray), and khaki or black pants/skirts. Specific campus variations may apply."
+                }
+            }
+        ];
+
+        // Global news feed (can be managed by Executive)
+        let newsFeed = [];
+
+
+        // --- Global State Variables ---
+        let currentLoggedInUser = null;
+        let currentDashboardPanelId = ''; // Tracks the currently active sub-panel within a dashboard
+        let editingGradeStudentId = null;
+        let editingGradeClassName = null;
+        let editingAttendanceStudentId = null;
+        let editingAttendanceClassName = null;
+        let editingNewsItemTitle = null; // For news feed management
+
+        // --- UI Element References ---
+        const loginPanel = document.getElementById('loginPanel');
+        const loginForm = document.getElementById('loginForm');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const errorMessageDisplay = document.getElementById('errorMessage');
+        const notificationBox = document.getElementById('notificationBox');
+
+        const dashboardWrapper = document.getElementById('dashboardWrapper');
+        const currentUserNameDisplay = document.getElementById('currentUserNameDisplay');
+        const currentUserRoleDisplay = document.getElementById('currentUserRoleDisplay');
+        const sidebarMenu = document.getElementById('sidebarMenu');
+
+        // Dashboard Home Panels (for initial display)
+        const studentHomePanel = document.getElementById('studentHome');
+        const staffHomePanel = document.getElementById('staffHome');
+        const adminHomePanel = document.getElementById('adminHome');
+        const executiveHomePanel = document.getElementById('executiveHome');
+        const parentHomePanel = document.getElementById('parentHome');
+
+        // Specific Dashboard Content Panels
+        const staffGradingPanel = document.getElementById('staffGrading');
+        const staffAttendancePanel = document.getElementById('staffAttendance');
+        const staffStudentInfoPanel = document.getElementById('staffStudentInfo');
+        const staffPaycheckPanel = document.getElementById('staffPaycheck');
+
+        const adminAnalyticsPanel = document.getElementById('adminAnalytics');
+        const adminUserManagementPanel = document.getElementById('adminUserManagement');
+        const adminCampusReportsPanel = document.getElementById('adminCampusReports');
+
+        const executiveUserManagementPanel = document.getElementById('executiveUserManagement');
+        const executivePolicySettingsPanel = document.getElementById('executivePolicySettings');
+        const executiveSystemSettingsPanel = document.getElementById('executiveSystemSettings');
+        const executiveNewsFeedManagementPanel = document.getElementById('executiveNewsFeedManagement');
+
+
+        const digitalIdCardsPanel = document.getElementById('digitalIdCards');
+        const districtNewsFeedPanel = document.getElementById('districtNewsFeed');
+        const aiChatbotPanel = document.getElementById('aiChatbot');
+
+        // Modals
+        const editGradeModal = document.getElementById('editGradeModal');
+        const modalStudentName = document.getElementById('modalStudentName');
+        const modalClassName = document.getElementById('modalClassName');
+        const newGradeInput = document.getElementById('newGradeInput');
+
+        const attendanceModal = document.getElementById('attendanceModal');
+        const attendanceModalStudentName = document.getElementById('attendanceModalStudentName');
+        const attendanceStatusSelect = document.getElementById('attendanceStatusSelect');
+
+        const userModal = document.getElementById('userModal');
+        const userModalTitle = document.getElementById('userModalTitle');
+        const userModalOriginalUsername = document.getElementById('userModalOriginalUsername');
+        const userModalUsername = document.getElementById('userModalUsername');
+        const userModalPassword = document.getElementById('userModalPassword');
+        const userModalRole = document.getElementById('userModalRole');
+        const userModalName = document.getElementById('userModalName');
+        const studentSpecificFields = document.getElementById('studentSpecificFields');
+        const userModalStudentID = document.getElementById('userModalStudentID');
+        const userModalCurrentSchool = document.getElementById('userModalCurrentSchool');
+        const userModalHomeAddress = document.getElementById('userModalHomeAddress');
+        const staffSpecificFields = document.getElementById('staffSpecificFields');
+        const userModalStaffRole = document.getElementById('userModalStaffRole');
+        const userModalAssignedClasses = document.getElementById('userModalAssignedClasses');
+        const parentSpecificFields = document.getElementById('parentSpecificFields');
+        const userModalChildrenIDs = document.getElementById('userModalChildrenIDs');
+
+        const targetedTruancyAlertModal = document.getElementById('targetedTruancyAlertModal');
+        const truancyMessageInput = document.getElementById('truancyMessageInput');
+        const truancyStudentList = document.getElementById('truancyStudentList');
+
+        const announcementModal = document.getElementById('announcementModal');
+        const announcementTitleInput = document.getElementById('announcementTitleInput');
+        const announcementMessageInput = document.getElementById('announcementMessageInput');
+        const announcementTargetRole = document.getElementById('announcementTargetRole');
+
+        const newsItemModal = document.getElementById('newsItemModal');
+        const newsItemModalTitle = document.getElementById('newsItemModalTitle');
+        const newsItemOriginalTitle = document.getElementById('newsItemOriginalTitle');
+        const newsItemTitleInput = document.getElementById('newsItemTitleInput');
+        const newsItemDateInput = document.getElementById('newsItemDateInput');
+        const newsItemContentInput = document.getElementById('newsItemContentInput');
+
+
+        // --- Helper Functions ---
+
+        // Shows a temporary notification message
+        function showNotification(message, type = 'error') {
+            notificationBox.textContent = message;
+            notificationBox.className = `notification-message ${type}`;
+            notificationBox.style.display = 'block';
+            setTimeout(() => {
+                notificationBox.style.display = 'none';
+            }, 3000);
+        }
+
+        // Hides all dashboard content panels
+        function hideAllDashboardContentPanels() {
+            document.querySelectorAll('.dashboard-content-panel').forEach(panel => {
+                panel.style.display = 'none';
+            });
+        }
+
+        // Shows a specific dashboard content panel
+        function showDashboardContentPanel(panelId) {
+            hideAllDashboardContentPanels();
+            const panel = document.getElementById(panelId);
+            if (panel) {
+                panel.style.display = 'block';
+                currentDashboardPanelId = panelId;
+            }
+            // Update active state in sidebar
+            document.querySelectorAll('.sidebar-menu a').forEach(link => {
+                link.classList.remove('active');
+                if (link.dataset.panel === panelId) {
+                    link.classList.add('active');
+                }
+            });
+        }
+
+        // Shows a modal
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        // Closes a modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Calculates attendance percentage
+        function calculateAttendancePercentage(attendanceRecords) {
+            if (!attendanceRecords || attendanceRecords.length === 0) return 100;
+            const totalDays = attendanceRecords.length;
+            const presentDays = attendanceRecords.filter(r => r.status === 'Present').length;
+            return (presentDays / totalDays) * 100;
+        }
+
+        // --- Core Functions ---
+
+        // Displays the login panel and hides all others
+        function showLogin() {
+            loginPanel.style.display = 'block';
+            dashboardWrapper.style.display = 'none';
+            errorMessageDisplay.textContent = '';
+            usernameInput.value = '';
+            passwordInput.value = '';
+            currentLoggedInUser = null;
+            currentDashboardPanelId = '';
+        }
+
+        // Handles user logout
+        function logout() {
+            showNotification('Logged out successfully.', 'success');
+            showLogin();
+        }
+
+        // Populates the sidebar menu based on the user's role
+        function populateSidebarMenu(role) {
+            sidebarMenu.innerHTML = ''; // Clear existing menu items
+
+            let menuItems = [];
+            let defaultPanelId = '';
+
+            switch (role) {
+                case "Student":
+                    menuItems = [
+                        { id: "studentHome", text: "Dashboard Home" },
+                        { id: "digitalIdCards", text: "Digital ID Card" },
+                        { id: "districtNewsFeed", text: "District News Feed" },
+                        { id: "aiChatbot", text: "AI Chatbot" }
+                    ];
+                    defaultPanelId = 'studentHome';
+                    break;
+                case "Staff":
+                    menuItems = [
+                        { id: "staffHome", text: "Dashboard Home" },
+                        { id: "staffGrading", text: "Grading Portal" },
+                        { id: "staffAttendance", text: "Attendance Submission" },
+                        { id: "staffStudentInfo", text: "Student Info Viewer" },
+                        { id: "staffPaycheck", text: "Paycheck & Hours" },
+                        { id: "digitalIdCards", text: "Digital ID Card" },
+                        { id: "districtNewsFeed", text: "District News Feed" },
+                        { id: "aiChatbot", text: "AI Chatbot" }
+                    ];
+                    defaultPanelId = 'staffHome';
+                    break;
+                case "Admin":
+                    menuItems = [
+                        { id: "adminHome", text: "Dashboard Home" },
+                        { id: "adminAnalytics", text: "District Analytics" },
+                        { id: "adminUserManagement", text: "Staff & Student Management" },
+                        { id: "adminCampusReports", text: "Campus Reports" },
+                        { id: "sendAnnouncements", text: "Send Announcements" }, // New for Admin
+                        { id: "districtNewsFeed", text: "District News Feed" },
+                        { id: "aiChatbot", text: "AI Chatbot" }
+                    ];
+                    defaultPanelId = 'adminHome';
+                    break;
+                case "Executive":
+                    menuItems = [
+                        { id: "executiveHome", text: "Dashboard Home" },
+                        { id: "adminAnalytics", text: "District Analytics" }, // Executives have Admin capabilities
+                        { id: "executiveUserManagement", text: "User Account Management" },
+                        { id: "executivePolicySettings", text: "Policy Settings" },
+                        { id: "executiveSystemSettings", text: "System Settings" },
+                        { id: "executiveNewsFeedManagement", text: "News Feed Management" }, // New for Executive
+                        { id: "sendAnnouncements", text: "Send Announcements" }, // New for Executive
+                        { id: "districtNewsFeed", text: "District News Feed" },
+                        { id: "aiChatbot", text: "AI Chatbot" }
+                    ];
+                    defaultPanelId = 'executiveHome';
+                    break;
+                case "Parent":
+                    menuItems = [
+                        { id: "parentHome", text: "Dashboard Home" },
+                        { id: "districtNewsFeed", text: "District News Feed" },
+                        { id: "aiChatbot", text: "AI Chatbot" }
+                    ];
+                    defaultPanelId = 'parentHome';
+                    break;
+            }
+
+            menuItems.forEach(item => {
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                a.href = "#";
+                a.textContent = item.text;
+                a.dataset.panel = item.id;
+                a.onclick = (e) => {
+                    e.preventDefault();
+                    showDashboardContentPanel(item.id);
+                    // Specific populate functions for initial load of sub-panels
+                    if (item.id === 'staffGrading') loadClassSelector();
+                    if (item.id === 'staffAttendance') loadAttendanceClassSelector();
+                    if (item.id === 'staffStudentInfo') loadAllStudentsList();
+                    if (item.id === 'staffPaycheck') populateStaffPaycheck();
+                    if (item.id === 'adminUserManagement' || item.id === 'executiveUserManagement') populateUserManagementTable();
+                    if (item.id === 'executivePolicySettings') populateUniformPolicy();
+                    if (item.id === 'executiveSystemSettings') populateSystemSettings();
+                    if (item.id === 'digitalIdCards') populateDigitalIDCard();
+                    if (item.id === 'aiChatbot') clearChatbot();
+                    if (item.id === 'districtNewsFeed') populateDistrictNewsFeed();
+                    if (item.id === 'executiveNewsFeedManagement') populateNewsFeedManagementTable();
+                    if (item.id === 'sendAnnouncements') showAnnouncementModal(); // Direct to modal
+                };
+                li.appendChild(a);
+                sidebarMenu.appendChild(li);
+            });
+
+            // Show the default panel for the role
+            showDashboardContentPanel(defaultPanelId);
+        }
+
+        // --- Dashboard Specific Populate Functions ---
+
+        function populateStudentDashboard(userData) {
+            document.getElementById('studentNameDisplay').textContent = userData.name;
+            document.getElementById('studentIdDisplay').textContent = userData.id || 'N/A';
+            document.getElementById('studentCurrentSchool').textContent = userData.currentSchool || 'N/A';
+            document.getElementById('studentAddressDisplay').textContent = userData.homeAddress || 'N/A';
+            document.getElementById('studentBusRoute').textContent = userData.transportation?.busRoute || 'N/A';
+            document.getElementById('studentDriverName').textContent = userData.transportation?.driverName || 'N/A';
+            document.getElementById('studentBusStopTime').textContent = userData.transportation?.stopTime || 'N/A';
+
+            const gradesList = document.getElementById('studentGradesList');
+            gradesList.innerHTML = '';
+            if (userData.grades && userData.grades.length > 0) {
+                userData.grades.forEach(grade => {
+                    const li = document.createElement('li');
+                    li.textContent = `${grade.subject}: ${grade.grade} (${grade.term})`;
+                    gradesList.appendChild(li);
+                });
+            } else {
+                gradesList.innerHTML = '<li>No grades on record.</li>';
+            }
+
+
+            document.getElementById('studentPreviousSchools').textContent = userData.previousSchools?.join(', ') || 'N/A';
+            document.getElementById('studentUniformCodes').textContent = userData.uniformCodes || 'No uniform codes set.';
+
+            const daysAbsent = userData.attendance ? userData.attendance.filter(a => a.status === 'Absent').length : 0;
+            document.getElementById('studentDaysAbsent').textContent = daysAbsent;
+            const attendanceList = document.getElementById('studentAttendanceList');
+            attendanceList.innerHTML = '';
+            if (userData.attendance && userData.attendance.length > 0) {
+                // Display last 5 attendance records
+                userData.attendance.slice(-5).forEach(record => {
+                     const li = document.createElement('li');
+                     li.textContent = `${record.date}: ${record.status}`;
+                     attendanceList.appendChild(li);
+                });
+            } else {
+                attendanceList.innerHTML = '<li>No attendance records.</li>';
+            }
+
+
+            const eventsList = document.getElementById('studentEventsList');
+            eventsList.innerHTML = '';
+            if (userData.upcomingEvents && userData.upcomingEvents.length > 0) {
+                userData.upcomingEvents.forEach(event => {
+                    const li = document.createElement('li');
+                    li.textContent = event;
+                    eventsList.appendChild(li);
+                });
+            } else {
+                eventsList.innerHTML = '<li>No upcoming events.</li>';
+            }
+
+
+            document.getElementById('studentOutstandingFees').textContent = userData.fictionalFeesDue?.toFixed(2) || '0.00';
+        }
+
+        function payFictionalFees() {
+            if (currentLoggedInUser.role === 'Student') {
+                currentLoggedInUser.data.fictionalFeesDue = 0;
+                populateStudentDashboard(currentLoggedInUser.data);
+                showNotification('Fictional fees paid successfully!', 'success');
+            } else if (currentLoggedInUser.role === 'Parent') {
+                // For parent, iterate through children and reset their fees
+                currentLoggedInUser.data.childrenUsernames.forEach(childUsername => {
+                    const childUser = fictionalUsers.find(u => u.username === childUsername && u.role === 'Student');
+                    if (childUser && childUser.data.fictionalFeesDue > 0) {
+                        childUser.data.fictionalFeesDue = 0;
+                        showNotification(`Fictional fees for ${childUser.data.name} paid!`, 'success');
+                    }
+                });
+                populateParentDashboard(currentLoggedInUser.data); // Re-populate parent dashboard
+            }
+        }
+
+
+        function populateStaffDashboard(userData) {
+            document.getElementById('staffNameDisplay').textContent = userData.name;
+        }
+
+        function populateAdminDashboard(userData) {
+            document.getElementById('adminNameDisplay').textContent = userData.name;
+            const students = fictionalUsers.filter(u => u.role === 'Student');
+            const staff = fictionalUsers.filter(u => u.role === 'Staff');
+            document.getElementById('adminTotalStudents').textContent = students.length;
+            document.getElementById('adminTotalStaff').textContent = staff.length;
+
+            const westfieldStudents = students.filter(s => s.data.currentSchool === 'Westfield High').length;
+            const northridgeStudents = students.filter(s => s.data.currentSchool === 'North Ridge High').length;
+            document.getElementById('adminWestfieldEnrollment').textContent = westfieldStudents;
+            document.getElementById('adminNorthRidgeEnrollment').textContent = northridgeStudents;
+        }
+
+        function populateExecutiveDashboard(userData) {
+            document.getElementById('executiveNameDisplay').textContent = userData.name;
+            document.getElementById('executiveActiveUsers').textContent = fictionalUsers.length;
+        }
+
+        function populateParentDashboard(userData) {
+            document.getElementById('parentNameDisplay').textContent = userData.name;
+
+            const childrenList = document.getElementById('parentChildrenList');
+            childrenList.innerHTML = '';
+            let totalOutstandingFees = 0;
+
+            if (userData.childrenUsernames && userData.childrenUsernames.length > 0) {
+                userData.childrenUsernames.forEach(childUsername => {
+                    const childUser = fictionalUsers.find(u => u.username === childUsername && u.role === 'Student');
+                    if (childUser) {
+                        const li = document.createElement('li');
+                        li.innerHTML = `<strong>${childUser.data.name}</strong> (${childUser.data.currentSchool || 'N/A'})
+                            <ul>
+                                <li>Grades: ${childUser.data.grades?.map(g => `${g.subject}: ${g.grade}`).join(', ') || 'N/A'}</li>
+                                <li>Attendance: ${calculateAttendancePercentage(childUser.data.attendance).toFixed(1)}% Present</li>
+                                <li>Bus: ${childUser.data.transportation?.busRoute || 'N/A'} (${childUser.data.transportation?.stopTime || 'N/A'})</li>
+                                <li>Fees Due: $${childUser.data.fictionalFeesDue?.toFixed(2) || '0.00'}</li>
+                            </ul>`;
+                        childrenList.appendChild(li);
+                        totalOutstandingFees += childUser.data.fictionalFeesDue || 0;
+                    }
+                });
+            } else {
+                childrenList.innerHTML = '<li>No children linked to this account.</li>';
+            }
+            document.getElementById('parentTotalOutstandingFees').textContent = totalOutstandingFees.toFixed(2);
+
+            // Populate parent events (can be shared with student events or unique)
+            const parentEventsList = document.getElementById('parentEventsList');
+            parentEventsList.innerHTML = '';
+            // For simplicity, let's just show some general events
+            const generalEvents = [
+                "School Board Meeting: Nov 1",
+                "District Holiday: Nov 20-21",
+                "Winter Break: Dec 20 - Jan 5"
+            ];
+            generalEvents.forEach(event => {
+                const li = document.createElement('li');
+                li.textContent = event;
+                parentEventsList.appendChild(li);
+            });
+        }
+
+        // --- Staff Dashboard Specific Functions ---
+
+        // Populates the class selector for grading and attendance
+        function loadClassSelector() {
+            const classSelector = document.getElementById('classSelector');
+            classSelector.innerHTML = '<option value="">-- Select a Class --</option>';
+            if (currentLoggedInUser && currentLoggedInUser.data.assignedClasses) {
+                currentLoggedInUser.data.assignedClasses.forEach(className => {
+                    const option = document.createElement('option');
+                    option.value = className;
+                    option.textContent = className;
+                    classSelector.appendChild(option);
+                });
+            }
+            document.getElementById('gradingTable').getElementsByTagName('tbody')[0].innerHTML = ''; // Clear table
+        }
+
+        function loadAttendanceClassSelector() {
+            const attendanceClassSelector = document.getElementById('attendanceClassSelector');
+            attendanceClassSelector.innerHTML = '<option value="">-- Select a Class --</option>';
+            if (currentLoggedInUser && currentLoggedInUser.data.assignedClasses) {
+                currentLoggedInUser.data.assignedClasses.forEach(className => {
+                    const option = document.createElement('option');
+                    option.value = className;
+                    option.textContent = className;
+                    attendanceClassSelector.appendChild(option);
+                });
+            }
+            document.getElementById('attendanceTable').getElementsByTagName('tbody')[0].innerHTML = ''; // Clear table
+        }
+
+        // Loads the student roster for the selected class in the grading portal
+        function loadClassRoster() {
+            const selectedClass = document.getElementById('classSelector').value;
+            const gradingTableBody = document.getElementById('gradingTable').getElementsByTagName('tbody')[0];
+            gradingTableBody.innerHTML = ''; // Clear previous roster
+
+            if (!selectedClass) return;
+
+            // Find students assigned to this class (simulated - in real app, students would have class IDs)
+            const studentsInClass = fictionalUsers.filter(user =>
+                user.role === 'Student' &&
+                user.data.grades.some(g => g.subject === selectedClass)
+            ).sort((a, b) => a.data.name.localeCompare(b.data.name)); // A-Z order
+
+            studentsInClass.forEach(student => {
+                const row = gradingTableBody.insertRow();
+                const currentGrade = student.data.grades.find(g => g.subject === selectedClass)?.grade || 'N/A';
+
+                row.innerHTML = `
+                    <td>${student.data.name}</td>
+                    <td>${currentGrade}</td>
+                    <td><button class="edit-button" onclick="openEditGradeModal('${student.username}', '${selectedClass}')">Edit</button></td>
+                `;
+            });
+        }
+
+        // Loads the student roster for the selected class in the attendance portal
+        function loadAttendanceRoster() {
+            const selectedClass = document.getElementById('attendanceClassSelector').value;
+            const attendanceTableBody = document.getElementById('attendanceTable').getElementsByTagName('tbody')[0];
+            attendanceTableBody.innerHTML = '';
+
+            if (!selectedClass) return;
+
+            const studentsInClass = fictionalUsers.filter(user =>
+                user.role === 'Student' &&
+                user.data.grades.some(g => g.subject === selectedClass) // Using grades as a proxy for class assignment
+            ).sort((a, b) => a.data.name.localeCompare(b.data.name));
+
+            studentsInClass.forEach(student => {
+                const row = attendanceTableBody.insertRow();
+                const lastAttendance = student.data.attendance.length > 0 ? student.data.attendance[student.data.attendance.length - 1].status : 'N/A';
+
+                row.innerHTML = `
+                    <td>${student.data.name}</td>
+                    <td>${lastAttendance}</td>
+                    <td><button class="edit-button" onclick="openAttendanceModal('${student.username}', '${selectedClass}')">Set Status</button></td>
+                `;
+            });
+        }
+
+        // Opens the modal to edit a student's grade
+        function openEditGradeModal(studentUsername, className) {
+            editingGradeStudentId = studentUsername;
+            editingGradeClassName = className;
+
+            const student = fictionalUsers.find(u => u.username === studentUsername);
+            if (student) {
+                modalStudentName.textContent = student.data.name;
+                modalClassName.textContent = className;
+                const currentGrade = student.data.grades.find(g => g.subject === className)?.grade;
+                newGradeInput.value = currentGrade !== undefined ? currentGrade : '';
+                showModal('editGradeModal');
+            }
+        }
+
+        // Saves the edited grade
+        function saveGrade() {
+            const newGrade = parseInt(newGradeInput.value);
+            if (isNaN(newGrade) || newGrade < 0 || newGrade > 100) {
+                showNotification('Please enter a valid grade between 0 and 100.');
+                return;
+            }
+
+            const student = fictionalUsers.find(u => u.username === editingGradeStudentId);
+            if (student) {
+                const gradeEntry = student.data.grades.find(g => g.subject === editingGradeClassName);
+                if (gradeEntry) {
+                    gradeEntry.grade = newGrade;
+                    showNotification(`Grade for ${student.data.name} in ${editingGradeClassName} updated to ${newGrade}.`, 'success');
+
+                    // Simulate sending update to Parent dashboard
+                    const parentUser = fictionalUsers.find(u => u.role === 'Parent' && u.data.childrenUsernames.includes(student.username));
+                    if (parentUser) {
+                        const alertMsg = `[NEW ALERT] Grade Update: ${student.data.name}'s ${editingGradeClassName} grade is now ${newGrade}.`;
+                        if (!parentUser.data.upcomingEvents) parentUser.data.upcomingEvents = []; // Ensure array exists
+                        parentUser.data.upcomingEvents.push(alertMsg);
+                        showNotification(`Parent of ${student.data.name} notified of grade change.`, 'success');
+                    }
+
+                } else {
+                    // If grade entry doesn't exist, add it (simulated)
+                    student.data.grades.push({ subject: editingGradeClassName, grade: newGrade, term: "Current" });
+                    showNotification(`New grade for ${student.data.name} in ${editingGradeClassName} added as ${newGrade}.`, 'success');
+                }
+                loadClassRoster(); // Refresh the grading table
+                closeModal('editGradeModal');
+            }
+        }
+
+        // Opens the modal to set attendance status
+        function openAttendanceModal(studentUsername, className) {
+            editingAttendanceStudentId = studentUsername;
+            editingAttendanceClassName = className; // Class name is used for context, not directly for attendance record
+
+            const student = fictionalUsers.find(u => u.username === studentUsername);
+            if (student) {
+                attendanceModalStudentName.textContent = student.data.name;
+                // Pre-select current status if available (last record for today)
+                const today = new Date().toISOString().slice(0, 10);
+                const todayRecord = student.data.attendance.find(r => r.date === today);
+                attendanceStatusSelect.value = todayRecord ? todayRecord.status : 'Present'; // Default to Present
+                showModal('attendanceModal');
+            }
+        }
+
+        // Saves the attendance status
+        function saveAttendance() {
+            const newStatus = attendanceStatusSelect.value;
+            const student = fictionalUsers.find(u => u.username === editingAttendanceStudentId);
+            const today = new Date().toISOString().slice(0, 10); // Get today's date inYYYY-MM-DD format
+
+            if (student) {
+                // Check if a record for today already exists
+                const existingRecordIndex = student.data.attendance.findIndex(r => r.date === today);
+
+                if (existingRecordIndex !== -1) {
+                    // Update existing record
+                    student.data.attendance[existingRecordIndex].status = newStatus;
+                } else {
+                    // Add new record
+                    student.data.attendance.push({ date: today, status: newStatus });
+                }
+
+                showNotification(`Attendance for ${student.data.name} set to ${newStatus} for ${today}.`, 'success');
+
+                // Simulate sending copies to Front Office & District Analytics
+                const frontOfficeUser = fictionalUsers.find(u => u.role === 'Staff' && u.data.staffRole === 'Front Office');
+                if (frontOfficeUser) {
+                    if (!frontOfficeUser.data.messages) frontOfficeUser.data.messages = []; // Simulated inbox
+                    frontOfficeUser.data.messages.push(`Attendance update for ${student.data.name}: ${newStatus} on ${today}.`);
+                }
+                // District Analytics update is implicit in the data structure, no specific notification needed for game sim
+
+                loadAttendanceRoster(); // Refresh the attendance table
+                closeModal('attendanceModal');
+            }
+        }
+
+        // Populates the list of all students for staff info viewer
+        function loadAllStudentsList() {
+            const allStudentsList = document.getElementById('allStudentsList');
+            allStudentsList.innerHTML = '';
+
+            const students = fictionalUsers.filter(u => u.role === 'Student').sort((a, b) => a.data.name.localeCompare(b.data.name));
+
+            if (students.length === 0) {
+                allStudentsList.innerHTML = '<li>No student data available.</li>';
+                return;
+            }
+
+            students.forEach(student => {
+                const li = document.createElement('li');
+                li.innerHTML = `<strong>${student.data.name}</strong> (ID: ${student.data.id || 'N/A'}, School: ${student.data.currentSchool || 'N/A'}, Grade: ${student.data.grades?.map(g => g.grade).join(', ') || 'N/A'}) - <a href="#" onclick="showNotification('Simulating full student profile view for ${student.data.name}...', 'success')">View Details</a>`;
+                allStudentsList.appendChild(li);
+            });
+        }
+
+        // Populates staff paycheck and hours log
+        function populateStaffPaycheck() {
+            if (currentLoggedInUser.role === 'Staff' && currentLoggedInUser.data) {
+                document.getElementById('staffPaycheckAmount').textContent = currentLoggedInUser.data.paycheck?.amount?.toFixed(2) || '0.00';
+                document.getElementById('staffPaycheckDate').textContent = currentLoggedInUser.data.paycheck?.dateIssued || 'N/A';
+
+                const hoursLogList = document.getElementById('staffHoursLog');
+                hoursLogList.innerHTML = '';
+                if (currentLoggedInUser.data.hoursWorked && Object.keys(currentLoggedInUser.data.hoursWorked).length > 0) {
+                    for (const date in currentLoggedInUser.data.hoursWorked) {
+                        const li = document.createElement('li');
+                        li.textContent = `${date}: ${currentLoggedInUser.data.hoursWorked[date]} hours`;
+                        hoursLogList.appendChild(li);
+                    }
+                } else {
+                    hoursLogList.innerHTML = '<li>No hours logged.</li>';
+                }
+            }
+        }
+
+        // --- Admin/Executive User Management Functions ---
+
+        function populateUserManagementTable() {
+            const tableId = currentLoggedInUser.role === 'Admin' ? 'userManagementTable' : 'executiveUserManagementTable';
+            const tableBody = document.getElementById(tableId).getElementsByTagName('tbody')[0];
+            tableBody.innerHTML = '';
+
+            // Filter users based on role for Admin
+            const usersToDisplay = currentLoggedInUser.role === 'Admin'
+                ? fictionalUsers.filter(u => u.role === 'Student' || u.role === 'Staff')
+                : fictionalUsers; // Executive sees all
+
+            if (usersToDisplay.length === 0) {
+                const row = tableBody.insertRow();
+                const cell = row.insertCell(0);
+                cell.colSpan = 4;
+                cell.textContent = 'No users to display.';
+                cell.style.textAlign = 'center';
+                return;
+            }
+
+            usersToDisplay.forEach(user => {
+                const row = tableBody.insertRow();
+                const school = user.data && user.data.currentSchool ? user.data.currentSchool :
+                               user.data && user.data.assignedSchool ? user.data.assignedSchool : 'N/A';
+
+                row.innerHTML = `
+                    <td>${user.username}</td>
+                    <td>${user.role}</td>
+                    <td>${school}</td>
+                    <td>
+                        <button class="edit-button" onclick="showEditUserModal('${user.username}')">Edit</button>
+                        <button class="delete-button" onclick="deleteUser('${user.username}')">Delete</button>
+                    </td>
+                `;
+            });
+        }
+
+        function showAddUserModal() {
+            userModalTitle.textContent = 'Add New User';
+            userModalOriginalUsername.value = ''; // Clear for add mode
+            userModalUsername.value = '';
+            userModalPassword.value = '';
+            userModalRole.value = 'Student'; // Default role
+            userModalName.value = '';
+            userModalStudentID.value = '';
+            userModalCurrentSchool.value = '';
+            userModalHomeAddress.value = '';
+            userModalStaffRole.value = '';
+            userModalAssignedClasses.value = '';
+            userModalChildrenIDs.value = '';
+
+            // Restrict roles for Admin
+            const roles = ['Student', 'Staff', 'Admin', 'Executive', 'Parent'];
+            userModalRole.innerHTML = '';
+            roles.forEach(role => {
+                if (currentLoggedInUser.role === 'Admin' && (role === 'Admin' || role === 'Executive')) {
+                    // Admin cannot add/edit other Admins or Executives
+                } else {
+                    const option = document.createElement('option');
+                    option.value = role;
+                    option.textContent = role;
+                    userModalRole.appendChild(option);
+                }
+            });
+            userModalRole.value = currentLoggedInUser.role === 'Admin' ? 'Student' : 'Student'; // Default
+
+            toggleUserSpecificFields(); // Show/hide fields based on default role
+            showModal('userModal');
+        }
+
+        function showEditUserModal(username) {
+            userModalTitle.textContent = 'Edit User';
+            userModalOriginalUsername.value = username; // Store original username for lookup
+            const userToEdit = fictionalUsers.find(u => u.username === username);
+
+            if (userToEdit) {
+                // Admin cannot edit Admin/Executive accounts
+                if (currentLoggedInUser.role === 'Admin' && (userToEdit.role === 'Admin' || userToEdit.role === 'Executive')) {
+                    showNotification('Admins cannot edit Admin or Executive accounts.', 'error');
+                    return;
+                }
+
+                userModalUsername.value = userToEdit.username;
+                userModalPassword.value = userToEdit.password; // In real app, never show plain password
+                userModalRole.value = userToEdit.role;
+                userModalName.value = userToEdit.data.name || '';
+
+                // Populate role-specific fields
+                if (userToEdit.role === 'Student' && userToEdit.data) {
+                    userModalStudentID.value = userToEdit.data.id || '';
+                    userModalCurrentSchool.value = userToEdit.data.currentSchool || '';
+                    userModalHomeAddress.value = userToEdit.data.homeAddress || '';
+                } else if (userToEdit.role === 'Staff' && userToEdit.data) {
+                    userModalStaffRole.value = userToEdit.data.staffRole || '';
+                    userModalAssignedClasses.value = userToEdit.data.assignedClasses ? userToEdit.data.assignedClasses.join(',') : '';
+                } else if (userToEdit.role === 'Parent' && userToEdit.data) {
+                    userModalChildrenIDs.value = userToEdit.data.childrenUsernames ? userToEdit.data.childrenUsernames.join(',') : '';
+                }
+                toggleUserSpecificFields();
+                showModal('userModal');
+            }
+        }
+
+        function toggleUserSpecificFields() {
+            studentSpecificFields.style.display = 'none';
+            staffSpecificFields.style.display = 'none';
+            parentSpecificFields.style.display = 'none';
+
+            switch (userModalRole.value) {
+                case 'Student':
+                    studentSpecificFields.style.display = 'block';
+                    break;
+                case 'Staff':
+                    staffSpecificFields.style.display = 'block';
+                    break;
+                case 'Parent':
+                    parentSpecificFields.style.display = 'block';
+                    break;
+            }
+        }
+
+        function saveUser() {
+            const originalUsername = userModalOriginalUsername.value;
+            const username = userModalUsername.value.trim();
+            const password = userModalPassword.value.trim();
+            const role = userModalRole.value;
+            const name = userModalName.value.trim();
+
+            if (!username || !password || !name) {
+                showNotification('Username, Password, and Full Name are required.');
+                return;
+            }
+
+            let userIndex = -1;
+            if (originalUsername) { // Editing existing user
+                userIndex = fictionalUsers.findIndex(u => u.username === originalUsername);
+                if (userIndex === -1) {
+                    showNotification('User to edit not found.', 'error');
+                    return;
+                }
+                // Check if new username conflicts with another existing user (if username changed)
+                if (username !== originalUsername && fictionalUsers.some(u => u.username === username)) {
+                    showNotification('Username already exists. Please choose a different one.');
+                    return;
+                }
+            } else { // Adding new user
+                if (fictionalUsers.some(u => u.username === username)) {
+                    showNotification('Username already exists. Please choose a different one.');
+                    return;
+                }
+            }
+
+            // Admin specific restriction for adding/editing roles
+            if (currentLoggedInUser.role === 'Admin' && (role === 'Admin' || role === 'Executive')) {
+                showNotification('Admins cannot create or modify Admin/Executive accounts.', 'error');
+                return;
+            }
+
+            const userData = { name: name };
+            if (role === 'Student') {
+                userData.id = userModalStudentID.value.trim();
+                userData.currentSchool = userModalCurrentSchool.value.trim();
+                userData.homeAddress = userModalHomeAddress.value.trim();
+                // Initialize empty arrays for new students or keep existing for edits
+                userData.grades = (userIndex !== -1 && fictionalUsers[userIndex].data.grades) ? fictionalUsers[userIndex].data.grades : [];
+                userData.previousSchools = (userIndex !== -1 && fictionalUsers[userIndex].data.previousSchools) ? fictionalUsers[userIndex].data.previousSchools : [];
+                userData.attendance = (userIndex !== -1 && fictionalUsers[userIndex].data.attendance) ? fictionalUsers[userIndex].data.attendance : [];
+                userData.upcomingEvents = (userIndex !== -1 && fictionalUsers[userIndex].data.upcomingEvents) ? fictionalUsers[userIndex].data.upcomingEvents : [];
+                userData.fictionalFeesDue = (userIndex !== -1 && fictionalUsers[userIndex].data.fictionalFeesDue !== undefined) ? fictionalUsers[userIndex].data.fictionalFeesDue : 0;
+                userData.transportation = (userIndex !== -1 && fictionalUsers[userIndex].data.transportation) ? fictionalUsers[userIndex].data.transportation : { busRoute: 'N/A', driverName: 'N/A', stopTime: 'N/A' };
+
+            } else if (role === 'Staff') {
+                userData.staffRole = userModalStaffRole.value.trim();
+                userData.assignedClasses = userModalAssignedClasses.value.split(',').map(c => c.trim()).filter(c => c);
+                // Initialize empty objects for new staff or keep existing for edits
+                userData.hoursWorked = (userIndex !== -1 && fictionalUsers[userIndex].data.hoursWorked) ? fictionalUsers[userIndex].data.hoursWorked : {};
+                userData.paycheck = (userIndex !== -1 && fictionalUsers[userIndex].data.paycheck) ? fictionalUsers[userIndex].data.paycheck : { amount: 0, dateIssued: 'N/A' };
+                userData.assignedSchool = (userIndex !== -1 && fictionalUsers[userIndex].data.assignedSchool) ? fictionalUsers[userIndex].data.assignedSchool : 'N/A'; // Assume a default school
+            } else if (role === 'Parent') {
+                userData.childrenUsernames = userModalChildrenIDs.value.split(',').map(c => c.trim()).filter(c => c);
+                userData.fictionalFeeBalance = (userIndex !== -1 && fictionalUsers[userIndex].data.fictionalFeeBalance !== undefined) ? fictionalUsers[userIndex].data.fictionalFeeBalance : 0;
+            }
+
+            const newUser = { username, password, role, data: userData };
+
+            if (userIndex !== -1) {
+                // Update existing user
+                fictionalUsers[userIndex] = { ...fictionalUsers[userIndex], ...newUser, data: { ...fictionalUsers[userIndex].data, ...newUser.data } };
+                showNotification('User updated successfully!', 'success');
+            } else {
+                // Add new user
+                fictionalUsers.push(newUser);
+                showNotification('User added successfully!', 'success');
+            }
+
+            populateUserManagementTable();
+            closeModal('userModal');
+        }
+
+        function deleteUser(username) {
+            const userToDelete = fictionalUsers.find(u => u.username === username);
+            if (userToDelete) {
+                // Admin cannot delete Admin/Executive accounts
+                if (currentLoggedInUser.role === 'Admin' && (userToDelete.role === 'Admin' || userToDelete.role === 'Executive')) {
+                    showNotification('Admins cannot delete Admin or Executive accounts.', 'error');
+                    return;
+                }
+            }
+
+            if (confirm(`Are you sure you want to delete user ${username}? This cannot be undone in this simulation.`)) {
+                const initialLength = fictionalUsers.length;
+                fictionalUsers = fictionalUsers.filter(u => u.username !== username);
+                if (fictionalUsers.length < initialLength) {
+                    showNotification(`User ${username} deleted.`, 'success');
+                    populateUserManagementTable();
+                } else {
+                    showNotification(`User ${username} not found.`, 'error');
+                }
+            }
+        }
+
+        // --- Targeted Truancy Alerts ---
+        function showTargetedTruancyAlertModal() {
+            truancyStudentList.innerHTML = ''; // Clear previous list
+            const students = fictionalUsers.filter(u => u.role === 'Student').sort((a, b) => a.data.name.localeCompare(b.data.name));
+
+            if (students.length === 0) {
+                truancyStudentList.innerHTML = '<p style="text-align: center; margin: 10px;">No students available to send alerts to.</p>';
+                showModal('targetedTruancyAlertModal');
+                return;
+            }
+
+            students.forEach(student => {
+                const attendancePercentage = calculateAttendancePercentage(student.data.attendance);
+                const isTruant = attendancePercentage < 85; // Example threshold
+
+                const label = document.createElement('label');
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.value = student.username;
+                checkbox.checked = isTruant; // Pre-check truant students
+
+                label.appendChild(checkbox);
+                label.appendChild(document.createTextNode(`${student.data.name} (${student.data.currentSchool || 'N/A'}) - Attendance: ${attendancePercentage.toFixed(1)}%`));
+                truancyStudentList.appendChild(label);
+            });
+            showModal('targetedTruancyAlertModal');
+        }
+
+        function sendTargetedTruancyAlerts() {
+            const selectedStudents = Array.from(truancyStudentList.querySelectorAll('input[type="checkbox"]:checked'))
+                                        .map(checkbox => checkbox.value);
+            const customMessage = truancyMessageInput.value.trim();
+
+            if (selectedStudents.length === 0) {
+                showNotification('Please select at least one student.', 'error');
+                return;
+            }
+            if (!customMessage) {
+                showNotification('Please enter an alert message.', 'error');
+                return;
+            }
+
+            selectedStudents.forEach(username => {
+                const student = fictionalUsers.find(u => u.username === username);
+                if (student && student.data) {
+                    const alertMessage = `[TRUANCY ALERT] ${customMessage}`;
+                    if (!student.data.upcomingEvents) student.data.upcomingEvents = [];
+                    student.data.upcomingEvents.push(alertMessage);
+
+                    // Also send to parent if linked
+                    const parentUser = fictionalUsers.find(p => p.role === 'Parent' && p.data.childrenUsernames.includes(student.username));
+                    if (parentUser) {
+                        const parentAlertMessage = `[TRUANCY ALERT] For ${student.data.name}: ${customMessage}`;
+                        if (!parentUser.data.upcomingEvents) parentUser.data.upcomingEvents = [];
+                        parentUser.data.upcomingEvents.push(parentAlertMessage);
+                    }
+                }
+            });
+            showNotification(`Simulated truancy alerts sent to ${selectedStudents.length} students and their parents.`, 'success');
+            closeModal('targetedTruancyAlertModal');
+            truancyMessageInput.value = ''; // Clear message
+        }
+
+        // --- General Announcements ---
+        function showAnnouncementModal() {
+            announcementTitleInput.value = '';
+            announcementMessageInput.value = '';
+            announcementTargetRole.value = 'All'; // Default to all
+            showModal('announcementModal');
+        }
+
+        function sendAnnouncement() {
+            const title = announcementTitleInput.value.trim();
+            const message = announcementMessageInput.value.trim();
+            const target = announcementTargetRole.value;
+
+            if (!title || !message) {
+                showNotification('Title and Message are required for the announcement.', 'error');
+                return;
+            }
+
+            const announcement = `[ANNOUNCEMENT] ${title}: ${message}`;
+            let sentCount = 0;
+
+            fictionalUsers.forEach(user => {
+                let shouldReceive = false;
+                if (target === 'All') {
+                    shouldReceive = true;
+                } else if (target === 'Westfield High' || target === 'North Ridge High') {
+                    if (user.role === 'Student' && user.data?.currentSchool === target) shouldReceive = true;
+                    if (user.role === 'Staff' && user.data?.assignedSchool === target) shouldReceive = true;
+                    if (user.role === 'Parent' && user.data?.childrenUsernames?.some(childUsername => {
+                        const child = fictionalUsers.find(s => s.username === childUsername && s.role === 'Student');
+                        return child && child.data?.currentSchool === target;
+                    })) shouldReceive = true;
+                } else { // Target is a specific role
+                    if (user.role === target) shouldReceive = true;
+                }
+
+                if (shouldReceive) {
+                    if (!user.data.upcomingEvents) user.data.upcomingEvents = [];
+                    user.data.upcomingEvents.push(announcement);
+                    sentCount++;
+                }
+            });
+
+            showNotification(`Simulated announcement "${title}" sent to ${sentCount} users.`, 'success');
+            closeModal('announcementModal');
+        }
+
+        // --- Executive News Feed Management ---
+        function populateNewsFeedManagementTable() {
+            const tableBody = document.getElementById('newsFeedManagementTable').getElementsByTagName('tbody')[0];
+            tableBody.innerHTML = '';
+
+            if (newsFeed.length === 0) {
+                const row = tableBody.insertRow();
+                const cell = row.insertCell(0);
+                cell.colSpan = 3;
+                cell.textContent = 'No news items to display.';
+                cell.style.textAlign = 'center';
+                return;
+            }
+
+            newsFeed.forEach(item => {
+                const row = tableBody.insertRow();
+                row.innerHTML = `
+                    <td>${item.title}</td>
+                    <td>${item.date}</td>
+                    <td>
+                        <button class="edit-button" onclick="showEditNewsItemModal('${item.title}')">Edit</button>
+                        <button class="delete-button" onclick="deleteNewsItem('${item.title}')">Delete</button>
+                    </td>
+                `;
+            });
+        }
+
+        function showAddNewsItemModal() {
+            newsItemModalTitle.textContent = 'Add New News Item';
+            newsItemOriginalTitle.value = '';
+            newsItemTitleInput.value = '';
+            newsItemDateInput.value = new Date().toISOString().slice(0, 10); // Default to today
+            newsItemContentInput.value = '';
+            showModal('newsItemModal');
+        }
+
+        function showEditNewsItemModal(title) {
+            newsItemModalTitle.textContent = 'Edit News Item';
+            newsItemOriginalTitle.value = title;
+            const itemToEdit = newsFeed.find(item => item.title === title);
+
+            if (itemToEdit) {
+                newsItemTitleInput.value = itemToEdit.title;
+                newsItemDateInput.value = itemToEdit.date;
+                newsItemContentInput.value = itemToEdit.content;
+                showModal('newsItemModal');
+            }
+        }
+
+        function saveNewsItem() {
+            const originalTitle = newsItemOriginalTitle.value;
+            const title = newsItemTitleInput.value.trim();
+            const date = newsItemDateInput.value;
+            const content = newsItemContentInput.value.trim();
+
+            if (!title || !date || !content) {
+                showNotification('Title, Date, and Content are required for a news item.', 'error');
+                return;
+            }
+
+            let itemIndex = -1;
+            if (originalTitle) { // Editing existing item
+                itemIndex = newsFeed.findIndex(item => item.title === originalTitle);
+                if (itemIndex === -1) {
+                    showNotification('News item to edit not found.', 'error');
+                    return;
+                }
+                if (title !== originalTitle && newsFeed.some(item => item.title === title)) {
+                    showNotification('News item with this title already exists.', 'error');
+                    return;
+                }
+            } else { // Adding new item
+                if (newsFeed.some(item => item.title === title)) {
+                    showNotification('News item with this title already exists.', 'error');
+                    return;
+                }
+            }
+
+            const newNewsItem = { title, date, content };
+
+            if (itemIndex !== -1) {
+                newsFeed[itemIndex] = newNewsItem;
+                showNotification('News item updated successfully!', 'success');
+            } else {
+                newsFeed.push(newNewsItem);
+                showNotification('News item added successfully!', 'success');
+            }
+            populateNewsFeedManagementTable();
+            populateDistrictNewsFeed(); // Refresh the public news feed
+            closeModal('newsItemModal');
+        }
+
+        function deleteNewsItem(title) {
+            if (confirm(`Are you sure you want to delete the news item "${title}"?`)) {
+                newsFeed = newsFeed.filter(item => item.title !== title);
+                showNotification(`News item "${title}" deleted.`, 'success');
+                populateNewsFeedManagementTable();
+                populateDistrictNewsFeed(); // Refresh the public news feed
+            }
+        }
+
+        function populateDistrictNewsFeed() {
+            const newsFeedContent = document.getElementById('newsFeedContent');
+            newsFeedContent.innerHTML = '';
+            if (newsFeed.length === 0) {
+                newsFeedContent.innerHTML = '<div class="info-item"><p>No news items available.</p></div>';
+                return;
+            }
+            // Sort by date, newest first
+            const sortedNews = [...newsFeed].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            sortedNews.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'info-item';
+                div.innerHTML = `
+                    <h4>${item.title}</h4>
+                    <p>Date: ${item.date}</p>
+                    <p>${item.content}</p>
+                `;
+                newsFeedContent.appendChild(div);
+            });
+        }
+
+
+        // --- Executive Specific Functions ---
+
+        function populateUniformPolicy() {
+            const executiveUser = fictionalUsers.find(u => u.role === 'Executive');
+            if (executiveUser && executiveUser.data && executiveUser.data.uniformPolicy) {
+                document.getElementById('uniformPolicyInput').value = executiveUser.data.uniformPolicy;
+            } else {
+                document.getElementById('uniformPolicyInput').value = "No uniform policy set yet.";
+            }
+        }
+
+        function saveUniformPolicy() {
+            const newPolicy = document.getElementById('uniformPolicyInput').value.trim();
+            const executiveUser = fictionalUsers.find(u => u.role === 'Executive');
+            if (executiveUser) {
+                executiveUser.data.uniformPolicy = newPolicy;
+                // Update all student uniform codes (simulated)
+                fictionalUsers.forEach(user => {
+                    if (user.role === 'Student' && user.data) {
+                        user.data.uniformCodes = newPolicy;
+                    }
+                });
+                showNotification('Uniform policy updated across the district (simulated).', 'success');
+            }
+        }
+
+        function populateSystemSettings() {
+            const executiveUser = fictionalUsers.find(u => u.role === 'Executive');
+            if (executiveUser && executiveUser.data && executiveUser.data.portalBranding) {
+                document.getElementById('portalNameInput').value = executiveUser.data.portalBranding.name;
+                document.getElementById('districtLogoInput').value = executiveUser.data.portalBranding.logoUrl;
+                document.getElementById('themeColorInput').value = executiveUser.data.portalBranding.themeColor;
+            }
+        }
+
+        function applySystemSettings() {
+            const portalName = document.getElementById('portalNameInput').value.trim();
+            const logoUrl = document.getElementById('districtLogoInput').value.trim();
+            const themeColor = document.getElementById('themeColorInput').value;
+
+            const executiveUser = fictionalUsers.find(u => u.role === 'Executive');
+            if (executiveUser) {
+                executiveUser.data.portalBranding = {
+                    name: portalName,
+                    logoUrl: logoUrl,
+                    themeColor: themeColor
+                };
+                // Apply changes to UI (simulated)
+                document.querySelector('h1').textContent = portalName;
+                document.querySelector('.portal-container').style.borderColor = themeColor; // Example
+                // Update all buttons and active sidebar links
+                document.querySelectorAll('.login-form button, .action-button').forEach(btn => {
+                    btn.style.backgroundColor = themeColor;
+                });
+                document.querySelectorAll('.sidebar-menu a.active').forEach(link => {
+                    link.style.backgroundColor = themeColor;
+                });
+                document.documentElement.style.setProperty('--main-theme-color', themeColor); // For general use if needed
+                showNotification('System settings applied (simulated).', 'success');
+            }
+        }
+
+        // --- Digital ID Card Function ---
+        function populateDigitalIDCard() {
+            if (currentLoggedInUser) {
+                document.getElementById('idCardName').textContent = currentLoggedInUser.data.name || currentLoggedInUser.username;
+                document.getElementById('idCardID').textContent = currentLoggedInUser.data.id || currentLoggedInUser.username; // Use student ID or username
+                document.getElementById('idCardRole').textContent = currentLoggedInUser.role;
+                document.getElementById('idCardDistrict').textContent = currentLoggedInUser.data.currentSchool || currentLoggedInUser.data.assignedSchool || 'District360';
+                // You could add logic here to set a specific photo based on user.username
+                document.getElementById('idCardPhoto').src = `https://placehold.co/150x150/cccccc/333333?text=${currentLoggedInUser.data.name ? currentLoggedInUser.data.name.split(' ').map(n => n[0]).join('') : currentLoggedInUser.username.slice(0,2)}`;
+            }
+        }
+
+        // --- AI Chatbot Functions ---
+        const chatbotMessages = document.getElementById('chatbotMessages');
+        const chatbotInput = document.getElementById('chatbotInput');
+
+        function addChatMessage(sender, message) {
+            const p = document.createElement('p');
+            p.innerHTML = `<strong>${sender}:</strong> ${message}`;
+            chatbotMessages.appendChild(p);
+            chatbotMessages.scrollTop = chatbotMessages.scrollHeight; // Scroll to bottom
+        }
+
+        function sendChatbotMessage() {
+            const message = chatbotInput.value.trim();
+            if (!message) return;
+
+            addChatMessage('You', message);
+            chatbotInput.value = '';
+
+            // Simulate AI response based on keywords
+            let botResponse = "I'm sorry, I don't understand. Can you please rephrase your question?";
+            const lowerMessage = message.toLowerCase();
+
+            if (lowerMessage.includes("grade") || lowerMessage.includes("grades")) {
+                botResponse = "To view your grades, navigate to the 'Grades & Academic History' section on your dashboard. If you are a teacher, use the 'Grading Portal' in the Staff menu.";
+            } else if (lowerMessage.includes("attendance")) {
+                botResponse = "Your attendance records can be found in the 'Attendance Records' section of your dashboard. Staff can submit attendance via the 'Attendance Submission' portal.";
+            } else if (lowerMessage.includes("bus") || lowerMessage.includes("transportation")) {
+                botResponse = "Transportation information, including bus routes, driver names, and stop times, is available under 'Transportation Info' on your dashboard.";
+            } else if (lowerMessage.includes("handbook") || lowerMessage.includes("resources")) {
+                botResponse = "The Student Handbook and Technology Help Desk information can be found in the 'Resources' section of your dashboard.";
+            } else if (lowerMessage.includes("fee") || lowerMessage.includes("payment")) {
+                botResponse = "Fictional fee payments can be viewed and paid (simulated) in the 'Fictional Fee Payments' section of your dashboard.";
+            } else if (lowerMessage.includes("event") || lowerMessage.includes("calendar")) {
+                botResponse = "Upcoming events are listed in the 'Upcoming Events & Calendar' section.";
+            } else if (lowerMessage.includes("contact teacher") || lowerMessage.includes("contact office")) {
+                botResponse = "You can find options to contact your teacher or the front office in the 'Contact Teacher or Front Office' section on the Parent Dashboard.";
+            } else if (lowerMessage.includes("hello") || lowerMessage.includes("hi")) {
+                botResponse = "Hello there! How can I help you with the District360 portal today?";
+            } else if (lowerMessage.includes("uniform")) {
+                const executiveUser = fictionalUsers.find(u => u.role === 'Executive');
+                if (executiveUser && executiveUser.data && executiveUser.data.uniformPolicy) {
+                    botResponse = `The current district uniform policy is: "${executiveUser.data.uniformPolicy}"`;
+                } else {
+                    botResponse = "There is no specific uniform policy set at the moment, or I don't have that information.";
+                }
+            } else if (lowerMessage.includes("news") || lowerMessage.includes("announcement")) {
+                botResponse = "You can find the latest district news and announcements on the 'District News Feed' page.";
+            }
+
+            setTimeout(() => {
+                addChatMessage('Chatbot', botResponse);
+            }, 500); // Simulate a slight delay for bot response
+        }
+
+        function clearChatbot() {
+            chatbotMessages.innerHTML = '<p><strong>Chatbot:</strong> Hello! How can I assist you today?</p>';
+            chatbotInput.value = '';
+        }
+
+        // --- Handle Login Submission ---
+        loginForm.addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            const foundUser = fictionalUsers.find(user =>
+                user.username === username && user.password === password
+            );
+
+            if (foundUser) {
+                currentLoggedInUser = foundUser;
+                loginPanel.style.display = 'none'; // Hide login panel
+                dashboardWrapper.style.display = 'flex'; // Show dashboard wrapper
+                currentUserNameDisplay.textContent = currentLoggedInUser.data.name || currentLoggedInUser.username;
+                currentUserRoleDisplay.textContent = currentLoggedInUser.role;
+
+                populateSidebarMenu(currentLoggedInUser.role); // Build dynamic sidebar
+
+                // Populate the specific home dashboard for the role
+                switch (currentLoggedInUser.role) {
+                    case "Student":
+                        populateStudentDashboard(currentLoggedInUser.data);
+                        break;
+                    case "Staff":
+                        populateStaffDashboard(currentLoggedInUser.data);
+                        break;
+                    case "Admin":
+                        populateAdminDashboard(currentLoggedInUser.data);
+                        break;
+                    case "Executive":
+                        populateExecutiveDashboard(currentLoggedInUser.data);
+                        break;
+                    case "Parent":
+                        populateParentDashboard(currentLoggedInUser.data);
+                        break;
+                }
+                showNotification(`Welcome, ${currentLoggedInUser.data.name || currentLoggedInUser.username}!`, 'success');
+
+            } else {
+                errorMessageDisplay.textContent = "Invalid username or password. Please try again.";
+                errorMessageDisplay.style.display = 'block';
+                usernameInput.value = ''; // Reset username field
+                passwordInput.value = ''; // Reset password field
+            }
+        });
+
+        // Initialize by showing the login screen when the page loads
+        document.addEventListener('DOMContentLoaded', showLogin);
+    </script>
+</body>
+</html>
